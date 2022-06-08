@@ -1,4 +1,5 @@
 # tauri-vue-example
+![example](./public/example.png)
 
 ## Project setup
 ```
