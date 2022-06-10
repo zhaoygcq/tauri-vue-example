@@ -23,3 +23,8 @@ npm run lint
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
+
+### TODO
+- 基本的进程间通信
+- 文件操作(读取本地文件信息)    

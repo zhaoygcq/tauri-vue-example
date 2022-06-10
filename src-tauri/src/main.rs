@@ -1,7 +1,6 @@
 // Copyright 2019-2021 Tauri Programme within The Commons Conservancy
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
-
 #![cfg_attr(
   all(not(debug_assertions), target_os = "windows"),
   windows_subsystem = "windows"
@@ -9,10 +8,12 @@
 
 mod cmd;
 
+use std::thread::Builder;
+
 use serde::{Deserialize, Serialize};
 use tauri::{
   api::dialog::ask, http::ResponseBuilder, RunEvent, WindowEvent, GlobalShortcutManager, Manager,
-  CustomMenuItem, Menu, MenuItem, Submenu
+  CustomMenuItem, Menu, MenuItem, Submenu, Event, EventLoopMessage, App
 };
 
 #[derive(Serialize)]
@@ -32,14 +33,21 @@ struct HttpReply {
   request: HttpPost,
 }
 
-#[tauri::command]
-async fn menu_toggle(window: tauri::Window) {
-  window.menu_handle().toggle().unwrap();
+#[derive(Clone, serde::Serialize)]
+struct Payload {
+  message: String,
 }
 
 fn main() {
   #[allow(unused_mut)]
   let mut app = tauri::Builder::default()
+    .setup(|app| {
+      app.listen_global("clickReq", |event| {
+        // response(app, event.payload());
+        println!("=========got click with payload {:?}========", event.payload());
+      });
+      Ok(())
+    })
     .on_page_load(|window, _| {
       let window_ = window.clone();
       window.listen("js-event", move |event| {
@@ -78,7 +86,8 @@ fn main() {
     // 监听来自于渲染进程的数据通信
     .invoke_handler(tauri::generate_handler![
       cmd::hello_world_test,
-      menu_toggle,
+      cmd::my_custom_command,
+      cmd::menu_toggle,
     ])
     .build(tauri::generate_context!())
     .expect("error while building tauri application");
