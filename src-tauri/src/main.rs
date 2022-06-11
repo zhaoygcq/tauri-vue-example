@@ -8,12 +8,18 @@
 
 mod cmd;
 
-use std::thread::Builder;
-
 use serde::{Deserialize, Serialize};
 use tauri::{
-  api::dialog::ask, http::ResponseBuilder, RunEvent, WindowEvent, GlobalShortcutManager, Manager,
-  CustomMenuItem, Menu, MenuItem, Submenu, Event, EventLoopMessage, App
+  api::dialog::ask,
+  http::ResponseBuilder, 
+  RunEvent, WindowEvent, 
+  GlobalShortcutManager,
+  Manager,
+  // 自定义菜单相关
+  CustomMenuItem,
+  Menu,
+  MenuItem,
+  Submenu
 };
 
 #[derive(Serialize)]
@@ -43,7 +49,6 @@ fn main() {
   let mut app = tauri::Builder::default()
     .setup(|app| {
       app.listen_global("clickReq", |event| {
-        // response(app, event.payload());
         println!("=========got click with payload {:?}========", event.payload());
       });
       Ok(())
@@ -81,7 +86,8 @@ fn main() {
     })
     .menu(get_menu())
     .on_menu_event(|event| {
-      println!("{:?}", event.menu_item_id());
+      // 自定义菜单的点击事件
+      println!("你刚才点击了:{:?}", event.menu_item_id());
     })
     // 监听来自于渲染进程的数据通信
     .invoke_handler(tauri::generate_handler![
@@ -144,20 +150,30 @@ fn main() {
   })
 }
 
+// 自定义菜单栏
 pub fn get_menu() -> Menu {
+  // 创建自定义的菜单项
   #[allow(unused_mut)]
   let mut disable_item =
     CustomMenuItem::new("disable-menu", "Disable menu").accelerator("CmdOrControl+D");
   #[allow(unused_mut)]
   let mut test_item = CustomMenuItem::new("test", "Test").accelerator("CmdOrControl+T");
+  
+  #[allow(unused_mut)]
+  let mut demo_item = CustomMenuItem::new("demo", "Demo").accelerator("CmdOrControl+E");
+  
   #[cfg(target_os = "macos")]
   {
+    // 可以使用由tauri提供了图标
     disable_item = disable_item.native_image(tauri::NativeImage::MenuOnState);
     test_item = test_item.native_image(tauri::NativeImage::Add);
+    demo_item = demo_item.native_image(tauri::NativeImage::Add);
   }
 
   // create a submenu
-  let my_sub_menu = Menu::new().add_item(disable_item);
+  let my_sub_menu = Menu::new()
+    .add_item(disable_item)
+    .add_item(demo_item);
 
   let my_app_menu = Menu::new()
     .add_native_item(MenuItem::Copy)
@@ -173,6 +189,6 @@ pub fn get_menu() -> Menu {
 
   // add all our childs to the menu (order is how they'll appear)
   Menu::new()
-    .add_submenu(Submenu::new("My app", my_app_menu))
-    .add_submenu(Submenu::new("Other menu", test_menu))
+    .add_submenu(Submenu::new("My app", my_app_menu)) // 第一个菜单项代表当前应用，这里的title字段无效
+    .add_submenu(Submenu::new("Custom menu", test_menu))
 }
