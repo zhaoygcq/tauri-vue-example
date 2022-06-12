@@ -94,6 +94,7 @@ fn main() {
       cmd::hello_world_test,
       cmd::my_custom_command,
       cmd::menu_toggle,
+      cmd::close_splashscreen,
     ])
     .build(tauri::generate_context!())
     .expect("error while building tauri application");

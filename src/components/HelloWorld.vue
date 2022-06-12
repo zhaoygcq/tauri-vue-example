@@ -45,12 +45,10 @@ onMounted(async () => {
     });
 
     title.value = res;
-    console.log(res, "======onMounted======");
   } catch(e) {
     console.log("error in mounted=======", e);
   }
 })
-
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
