@@ -49,7 +49,11 @@ fn main() {
   let mut app = tauri::Builder::default()
     .setup(|app| {
       app.listen_global("clickReq", |event| {
-        println!("=========got click with payload {:?}========", event.payload());
+        let msg = match event.payload() {
+            Some(msg) => msg,
+            None => ""
+        };
+        println!("=========got click with payload {:?}========", msg);
       });
       Ok(())
     })
@@ -95,6 +99,8 @@ fn main() {
       cmd::my_custom_command,
       cmd::menu_toggle,
       cmd::close_splashscreen,
+      cmd::store_msg,
+      cmd::get_history
     ])
     .build(tauri::generate_context!())
     .expect("error while building tauri application");

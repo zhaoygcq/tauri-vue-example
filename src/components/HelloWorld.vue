@@ -1,15 +1,19 @@
 <template>
   <div class="hello">
     <p>{{ title }}</p>
-    <input v-model="inputData" @change="handleChange"/>
+    <input v-model="inputData" @change="handleInputValChange"/>
     <p v-if="response">response: {{response}}</p>
+    <span class="history" v-if="response" @click="getHistory">查看输入历史：</span>
+    <ul>
+      <li v-for="(history, index) in histories" :key="index">{{ history }}</li>
+    </ul>
   </div>
 </template>
 
 <script setup>
 import { defineProps, ref, onMounted } from "vue";
 import { invoke } from '@tauri-apps/api/tauri'
-import { listen, emit,  } from "@tauri-apps/api/event"
+import { emit,  } from "@tauri-apps/api/event"
 
 let props = defineProps(['msg']);
 
@@ -17,23 +21,33 @@ let title = ref(props.msg);
 
 let inputData = ref("");
 let response = ref("");
+let histories = ref([]);
 
-const handleChange = async () => {
+const handleInputValChange = async () => {
   try {
     // 与主进程通信
-    // 使用Event进行消息通信
-    await listen('clickRes', event => {
-      // event.event is the event name (useful if you want to use a single callback fn for multiple event types)
-      // event.payload is the payload object
-      console.log(event, "=======event=======");
-      response.value = event.payload;
+    let res = await invoke("store_msg", {
+      event: inputData.value
     })
+    console.log(res, "======res");
+    response.value = res;
 
+    // 使用Event进行消息通信, 触发主进程监听的事件
     emit('clickReq', {
-      theMessage: 'Tauri is awesome111111111111!'
+      theMessage: inputData.value
     })
   } catch(err) {
     console.log(err, "=====error");
+  }
+}
+
+const getHistory = async () => {
+  try {
+    let res = await invoke("get_history");
+    histories.value = res;
+    console.log(res);
+  } catch(err) {
+    console.log(err);
   }
 }
 
@@ -55,5 +69,27 @@ onMounted(async () => {
 <style scoped>
 input {
   border-color: aqua;
+}
+
+.hello {
+  margin: 0 auto;
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.history {
+  cursor: pointer;
+  align-self: flex-start;
+} 
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+ul li {
+  text-align: left;
 }
 </style>

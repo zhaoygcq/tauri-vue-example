@@ -1,4 +1,4 @@
-use std::process::{Command};
+use std::{process::{Command}, path, fs::{OpenOptions, self}, io::Write};
 use tauri::{command, Manager};
 
 #[command]
@@ -29,6 +29,53 @@ pub async fn close_splashscreen(window: tauri::Window) {
   }
   // 展示主页面
   window.get_window("main").unwrap().show().unwrap();
+}
+
+#[command]
+pub fn store_msg(event: String) -> Option<String> {
+  let event = event + "\n";
+  let report_path = "report.txt";
+  println!("======path:{:?}=====", report_path);
+
+  let exist = path::Path::new(&report_path).exists();
+  println!("====path exist===={}", exist);
+  if !exist {
+    let file_create = fs::File::create(&report_path);
+
+    match  file_create {
+        Ok(file) => {
+          println!("===file info=====: {:?}", file);
+
+        },
+        Err(msg) => {
+          println!("create file error: {}", msg);
+        }
+    }
+  }
+
+  let mut file = OpenOptions::new()
+    .read(true)
+    .write(true)
+    .create(true)
+    .append(true)
+    .open(report_path)
+    .expect("write failed");
+  
+  file.write_all(event.as_bytes()).expect("write failed");
+  
+  Some("ok".to_string())
+}
+
+#[command]
+pub fn get_history() -> Option<Vec<String>> {
+  let content = fs::read_to_string("report.txt").expect("read failed");
+  let vec: Vec<String> = content.split("\n")
+    .map(|x| {
+      x.to_string()
+    }).collect();
+  println!("=====content: {:?}=====", vec);
+
+  Some(vec)
 }
 
 pub fn hello_world(event: String) -> String {
