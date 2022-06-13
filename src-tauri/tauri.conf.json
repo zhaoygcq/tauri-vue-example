@@ -6,10 +6,12 @@
     "devPath": "Set automatically by Vue CLI plugin",
     "distDir": "../dist"
   },
+  
   "package": {
     "productName": "tauri-vue-example",
     "version": "0.1.0"
   },
+
   "tauri": {
     "allowlist": {
       "all": true

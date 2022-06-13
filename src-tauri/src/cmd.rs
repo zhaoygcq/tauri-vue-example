@@ -34,7 +34,7 @@ pub async fn close_splashscreen(window: tauri::Window) {
 #[command]
 pub fn store_msg(event: String) -> Option<String> {
   let event = event + "\n";
-  let report_path = "report.txt";
+  let report_path = "../report.txt";
   println!("======path:{:?}=====", report_path);
 
   let exist = path::Path::new(&report_path).exists();
@@ -68,7 +68,7 @@ pub fn store_msg(event: String) -> Option<String> {
 
 #[command]
 pub fn get_history() -> Option<Vec<String>> {
-  let content = fs::read_to_string("report.txt").expect("read failed");
+  let content = fs::read_to_string("../report.txt").expect("read failed");
   let vec: Vec<String> = content.split("\n")
     .map(|x| {
       x.to_string()
@@ -77,6 +77,7 @@ pub fn get_history() -> Option<Vec<String>> {
 
   Some(vec)
 }
+
 
 pub fn hello_world(event: String) -> String {
   let output = if cfg!(target_os = "windows") {

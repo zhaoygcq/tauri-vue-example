@@ -53,6 +53,7 @@ fn main() {
             Some(msg) => msg,
             None => ""
         };
+        
         println!("=========got click with payload {:?}========", msg);
       });
       Ok(())
@@ -62,7 +63,7 @@ fn main() {
       window.listen("js-event", move |event| {
         println!("got js-event with message '{:?}'", event.payload());
         let reply = Reply {
-          data: "something else".to_string(),
+          data: event.payload().expect("no words").to_string(),
         };
 
         window_
@@ -132,7 +133,7 @@ fn main() {
       let window = app_handle.get_window(&label).unwrap();
       // use the exposed close api, and prevent the event loop to close
       api.prevent_close();
-      // ask the user if he wants to quit
+      // 提示弹窗
       ask(
         Some(&window),
         "Tauri API",

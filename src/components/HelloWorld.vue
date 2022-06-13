@@ -1,7 +1,10 @@
 <template>
   <div class="hello">
     <p>{{ title }}</p>
+    <label>输入内容：</label>
     <input v-model="inputData" @change="handleInputValChange"/>
+    <label>选择文件</label>
+    <input v-model="filePath" @click="selectSourceFile" />
     <p v-if="response">response: {{response}}</p>
     <span class="history" v-if="response" @click="getHistory">查看输入历史：</span>
     <ul>
@@ -12,12 +15,14 @@
 
 <script setup>
 import { defineProps, ref, onMounted } from "vue";
-import { invoke } from '@tauri-apps/api/tauri'
-import { emit,  } from "@tauri-apps/api/event"
+import { invoke } from '@tauri-apps/api/tauri';
+import { emit, listen } from "@tauri-apps/api/event";
+import { open } from "@tauri-apps/api/dialog";
 
 let props = defineProps(['msg']);
 
 let title = ref(props.msg);
+let filePath = ref("");
 
 let inputData = ref("");
 let response = ref("");
@@ -26,14 +31,16 @@ let histories = ref([]);
 const handleInputValChange = async () => {
   try {
     // 与主进程通信
-    let res = await invoke("store_msg", {
+    await invoke("store_msg", {
       event: inputData.value
     })
-    console.log(res, "======res");
-    response.value = res;
+    listen("rust-event", (res) => {
+      console.log(res, "======res");
+      response.value = res && res.payload.data;
+    });
 
     // 使用Event进行消息通信, 触发主进程监听的事件
-    emit('clickReq', {
+    emit('js-event', {
       theMessage: inputData.value
     })
   } catch(err) {
@@ -48,6 +55,20 @@ const getHistory = async () => {
     console.log(res);
   } catch(err) {
     console.log(err);
+  }
+}
+
+const selectSourceFile = async () => {
+  try {
+    let res = await open({
+      title: "请选择文件夹",
+      defaultPath: "..",
+      directory: false
+    })
+    filePath.value = res;
+    console.log(res, "======file checked=====");
+  } catch(e) {
+    console.log("error when open file", e);
   }
 }
 
@@ -76,6 +97,10 @@ input {
   width: 400px;
   display: flex;
   flex-direction: column;
+}
+
+label {
+  align-self: flex-start;
 }
 
 .history {
