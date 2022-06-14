@@ -1,5 +1,5 @@
 use std::{process::{Command}, path, fs::{OpenOptions, self}, io::Write};
-use tauri::{command, Manager};
+use tauri::{command, Manager, api::notification::Notification};
 
 #[command]
 pub async fn menu_toggle(window: tauri::Window) {
@@ -62,6 +62,12 @@ pub fn store_msg(event: String) -> Option<String> {
     .expect("write failed");
   
   file.write_all(event.as_bytes()).expect("write failed");
+
+  Notification::new("temp")
+  .title("Success")
+  .body("the message has been stored")
+  .show()
+  .expect("store error");
   
   Some("ok".to_string())
 }

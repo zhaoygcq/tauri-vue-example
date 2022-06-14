@@ -21,6 +21,7 @@ use tauri::{
   MenuItem,
   Submenu
 };
+use tauri_plugin_store::PluginBuilder;
 
 #[derive(Serialize)]
 struct Reply {
@@ -103,9 +104,10 @@ fn main() {
       cmd::store_msg,
       cmd::get_history
     ])
+    .plugin(PluginBuilder::default().build())
     .build(tauri::generate_context!())
     .expect("error while building tauri application");
-
+  
   #[cfg(target_os = "macos")]
   app.set_activation_policy(tauri::ActivationPolicy::Regular);
 

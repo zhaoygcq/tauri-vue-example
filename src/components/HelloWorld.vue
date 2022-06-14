@@ -18,6 +18,15 @@ import { defineProps, ref, onMounted } from "vue";
 import { invoke } from '@tauri-apps/api/tauri';
 import { emit, listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/api/dialog";
+import { Store } from 'tauri-plugin-store-api';
+const store = new Store('.settings.dat');
+
+const setStore = async (value) => {
+  await store.set('some-key', { value });
+  const val = await store.get('some-key');
+
+  console.log(val);
+}
 
 let props = defineProps(['msg']);
 
@@ -43,6 +52,8 @@ const handleInputValChange = async () => {
     emit('js-event', {
       theMessage: inputData.value
     })
+
+    await setStore(inputData.value);
   } catch(err) {
     console.log(err, "=====error");
   }
