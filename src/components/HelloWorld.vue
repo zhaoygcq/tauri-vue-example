@@ -24,6 +24,7 @@ import { open } from "@tauri-apps/api/dialog";
 import { Store } from 'tauri-plugin-store-api';
 import { readText, writeText } from '@tauri-apps/api/clipboard';
 import { sendNotification } from '@tauri-apps/api/notification';
+import { register, isRegistered } from '@tauri-apps/api/globalShortcut';
 
 const store = new Store('.settings.dat');
 
@@ -115,6 +116,16 @@ onMounted(async () => {
     });
 
     title.value = res;
+
+    let flag = await isRegistered('CommandOrControl+C');
+    if(!flag) {
+      // 热键注册
+      await register('CommandOrControl+Shift+C', () => {
+        console.log('Shortcut triggered');
+      });
+
+    }
+
   } catch(e) {
     console.log("error in mounted=======", e);
   }
