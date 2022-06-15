@@ -2,10 +2,13 @@
   <div class="hello">
     <p>{{ title }}</p>
     <label>输入内容：</label>
-    <input v-model="inputData" @change="handleInputValChange"/>
+    <div class="input-area">
+      <input v-model="inputData" @change="handleInputValChange"/>
+      <button v-if="inputData" @click="setClipboardContent">复制到剪切板</button>
+    </div>
     <label>选择文件</label>
     <input v-model="filePath" @click="selectSourceFile" />
-    <p v-if="response">response: {{response}}</p>
+    <p v-if="response" @click="getClipboardContent">response: {{response}}</p>
     <span class="history" v-if="response" @click="getHistory">查看输入历史：</span>
     <ul>
       <li v-for="(history, index) in histories" :key="index">{{ history }}</li>
@@ -19,6 +22,9 @@ import { invoke } from '@tauri-apps/api/tauri';
 import { emit, listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/api/dialog";
 import { Store } from 'tauri-plugin-store-api';
+import { readText, writeText } from '@tauri-apps/api/clipboard';
+import { sendNotification } from '@tauri-apps/api/notification';
+
 const store = new Store('.settings.dat');
 
 const setStore = async (value) => {
@@ -83,6 +89,24 @@ const selectSourceFile = async () => {
   }
 }
 
+const getClipboardContent = async () => {
+  try {
+    const clipboardText = await readText();
+    console.log(clipboardText, "======clipboard content======");
+  } catch(err) {
+    console.log("get clipboard error", err);
+  }
+}
+
+const setClipboardContent = async () => {
+  try {
+    await writeText(inputData.value);
+    sendNotification({ title: 'Copy', body: '复制到剪切板成功' });
+  } catch(err) {
+    console.log("setClipboardContent error", err);
+  }
+}
+
 onMounted(async () => {
   try {
     // 使用Invoke，类似于网络请求的方式进行通信
@@ -112,6 +136,14 @@ input {
 
 label {
   align-self: flex-start;
+}
+
+.input-area {
+  display: flex;
+}
+
+.input-area input {
+  flex: 1;
 }
 
 .history {
